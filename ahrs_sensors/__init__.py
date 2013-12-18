@@ -84,6 +84,12 @@ class ADXL345(Sensor):
         self.sensor.write8(0x31, 0x08)
         sleep(0.05)
 
+        base_data = self.read()
+        self.offset['x'] = -base_data['x']
+        self.offset['y'] = -base_data['y']
+        z = base_data['z']
+        self.offset['z'] = -(z/abs(z))*(251-abs(z))
+
     def read(self):
         return self.read_s16(0x32)
 
@@ -205,10 +211,17 @@ class Nav440(Sensor):
                 self.sensor.flushOutput()
                 self.sensor.flushInput()
             self.sensor.read(32)
-        return self.parse_packet(self.sensor.read(37))
+        try:
+            packet_data =  self.parse_packet(self.sensor.read(37))
+        except IOError as err:
+            print(err)
+            return None
+
+        finally:
+            self.sensor.close()
 
     def poll(self):
-        self.read()
+        return self.read()
 
     def calibrate(self):
         pass
@@ -224,7 +237,7 @@ class Nav440(Sensor):
                           'CRC doesn\'t match packet')
 
         reading_info = self.packet_types[reading.type]
-        parsed_packet = {'raw': packet}
+        parsed_packet = {}
         self.raw_data = reading.data
         for pos, info in zip(range(0, reading.num, 2), reading_info):
             data_val = struct.unpack('>h', self.raw_data[pos: pos + 2])[0]

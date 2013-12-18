@@ -18,6 +18,8 @@ class Sensor(object):
     raw_data = [0, 0, 0, 0, 0, 0]
     low_high = True
 
+    offset = {'x': 0, 'y': 0, 'z': 0, 'T': 0}
+
     def __init__(self, bus=None, **kwargs):
         '''\
         Set up I2C connection to sensor and initialise parameters specific to
@@ -79,7 +81,8 @@ class Sensor(object):
         self.raw_data = self.sensor.readList(start, num_bytes)
         direction_vector = []
         for d, i in zip(register_names, range(0, num_bytes, 2)):
-            direction_vector.append((d, self.convert_raw_data(i)))
+            fixed_point = self.convert_raw_data(i) + self.offset[d]
+            direction_vector.append((d, fixed_point)
 
         return dict(direction_vector)
 
