@@ -12,6 +12,8 @@ along the x, y and z axes relative to gravity.
 
 The InvenSense ITG3200 gyroscope can be used to measure angular rotation rate.
 
+The XBow Nav440 AHRS system for measuring yaw, pitch, roll, acceleration,
+heading and angular rate
 Installing
 ----------
 To use this library the host computer needs to have support for communicating

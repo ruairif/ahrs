@@ -13,6 +13,11 @@ sensors. These sensors include
 
 from time import sleep
 from sensor import Sensor
+from collections import namedtuple
+from math import pi
+from ctypes import c_uint16 as uint16
+import serial
+import struct
 
 
 class HMC5883L(Sensor):
@@ -135,3 +140,115 @@ class ITG3200(Sensor):
 
     def calibrate(self):
         pass
+
+
+class Nav440(Sensor):
+
+    '''\
+    Interface with the XBow Nav440\
+    '''
+
+    DataStr = namedtuple('DataStr', 'type num data crc stripped')
+    Reading = namedtuple('Reading', 'sensor direction')
+    S0 = [Reading(sensor='accel', direction='x'),
+          Reading(sensor='accel', direction='y'),
+          Reading(sensor='accel', direction='z'),
+          Reading(sensor='gyro', direction='x'),
+          Reading(sensor='gyro', direction='y'),
+          Reading(sensor='gyro', direction='z'),
+          Reading(sensor='mag', direction='x'),
+          Reading(sensor='mag', direction='y'),
+          Reading(sensor='mag', direction='z'),
+          Reading(sensor='temp', direction='x'),
+          Reading(sensor='temp', direction='y'),
+          Reading(sensor='temp', direction='z'),
+          Reading(sensor='temp', direction='cpu')]
+
+    A0 = [Reading(sensor='attit', direction='r'),
+          Reading(sensor='attit', direction='p'),
+          Reading(sensor='attit', direction='y'),
+          Reading(sensor='gyro', direction='x'),
+          Reading(sensor='gyro', direction='y'),
+          Reading(sensor='gyro', direction='z'),
+          Reading(sensor='accel', direction='x'),
+          Reading(sensor='accel', direction='y'),
+          Reading(sensor='accel', direction='z'),
+          Reading(sensor='mag', direction='x'),
+          Reading(sensor='mag', direction='y'),
+          Reading(sensor='mag', direction='z'),
+          Reading(sensor='temp', direction='x')]
+
+    scales = {'accel': 20.0 / 2 ** 16,
+              'gyro': 7*pi / 2 ** 16,
+              'mag': 2.0 / 2 ** 16,
+              'attit': 2*pi / 2 ** 16,
+              'temp': 200.0 / 2 ** 16}
+
+    packet_types = {'S0': S0, 'A0': A0, 'A1': A0}
+
+    low_high = False
+
+    def __init__(self, bus='/dev/USB0', baudrate=9600, timeout=None, **kwargs):
+        self.sensor = serial.Serial(bus,
+                                    baudrate=baudrate,
+                                    timeout=None)
+        self.sensor.close()
+        self._init_sensor(**kwargs)
+
+    def _init_sensor(self, **kwargs):
+        pass
+
+    def read(self):
+        if not self.sensor.isOpen():
+            self.sensor.open()
+            while self.sensor.read(5) != 'UUS0\x1e':
+                self.sensor.flushOutput()
+                self.sensor.flushInput()
+            self.sensor.read(32)
+        return self.parse_packet(self.sensor.read(37))
+
+    def poll(self):
+        self.read()
+
+    def calibrate(self):
+        pass
+
+    def parse_packet(self, packet):
+        '''\
+        Convert Packet from binary to data dict\
+        '''
+        reading = self.split_packet(packet)
+        if reading.crc != self.calc_CRC(reading.stripped):
+            self.sensor.close()
+            raise IOError('Data not transmistted correctly,'
+                          'CRC doesn\'t match packet')
+
+        reading_info = self.packet_types[reading.type]
+        parsed_packet = {'raw': packet}
+        self.raw_data = reading.data
+        for pos, info in zip(range(0, reading.num, 2), reading_info):
+            data_val = struct.unpack('>h', self.raw_data[pos: pos + 2])[0]
+            scaled = data_val * self.scales[info.sensor]
+            parsed_packet.setdefault(info.sensor, {})
+            parsed_packet[info.sensor][info.direction] = scaled
+        return parsed_packet
+
+    def split_packet(self, packet=None):
+            if packet is not None:
+                self.packet = packet
+            return self.DataStr(type=self.packet[2:4],
+                                num=struct.unpack('>B', self.packet[3])[0],
+                                crc=struct.unpack('>H', self.packet[-2:])[0],
+                                data=self.packet[5:-2],
+                                stripped=self.packet[2:-2])
+
+    def calc_CRC(self, data_packet):
+            crc = 0x1D0F
+            for byte_c in data_packet:
+                crc ^= uint16(ord(byte_c) << 8).value
+                for _ in range(8):
+                    if crc & 0x8000:
+                        crc = uint16((crc << 1) ^ 0x1021).value
+                    else:
+                        crc = uint16(crc << 1).value
+            return crc
