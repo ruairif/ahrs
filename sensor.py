@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from Adafruit_I2C import Adafruit_I2C
-from time import sleep
 from ctypes import c_int16
+import smbus
 
 
 class Sensor(object):
@@ -19,16 +18,13 @@ class Sensor(object):
     raw_data = [0, 0, 0, 0, 0, 0]
     low_high = True
 
-
     def __init__(self, bus=None, **kwargs):
         '''\
         Set up I2C connection to sensor and initialise parameters specific to
         the sensor\
         '''
-        bus = bus if bus is not None else 1
-        self.sensor = Adafruit_I2C(self.address, busnum=bus)
+        self.sensor = self.SMBusCommunicate(self.address, bus)
         self._init_sensor(**kwargs)
-
 
     def _init_sensor(self, **kwargs):
         '''\
@@ -36,13 +32,11 @@ class Sensor(object):
         '''
         raise NotImplementedError
 
-
     def read(self):
         '''\
         Read data directly from the sensors and return sensor reading\
         '''
         raise NotImplementedError
-
 
     def poll(self):
         '''\
@@ -50,14 +44,12 @@ class Sensor(object):
         '''
         return self.read()
 
-
     def calibrate(self, **kwargs):
         '''\
         Provide a setup that can allow for accurate calibration of the
         sensor\
         '''
         raise NotImplementedError
-
 
     def convert_raw_data(self, index):
         '''\
@@ -71,11 +63,9 @@ class Sensor(object):
                             self.raw_data[index + 1])
         return c_int16(unsigned_int).value
 
-
     def read_s16(self,
                  start=None,
                  num_bytes=6,
-                 read_time=0.008,
                  register_names=None):
         '''\
         Read specified bytes from sensor and return 16bit values with
@@ -87,13 +77,11 @@ class Sensor(object):
         if register_names is None:
             register_names = self.data_vector
         self.raw_data = self.sensor.readList(start, num_bytes)
-        sleep(read_time)
         direction_vector = []
         for d, i in zip(register_names, range(0, num_bytes, 2)):
             direction_vector.append((d, self.convert_raw_data(i)))
 
         return dict(direction_vector)
-
 
     @property
     def address(self):
@@ -101,3 +89,55 @@ class Sensor(object):
         I2C address of sensor\
         '''
         return self._address
+
+    class SMBusCommunicate(object):
+
+        '''\
+        Class to read and write bytes to I2C devices over SMBus\
+        '''
+
+        def __init__(self, address=0x00, bus=None):
+            self.address = address
+            self.bus = smbus.SMBus(bus if bus is not None else 1)
+
+        def readU8(self, register):
+            '''\
+            Read a single byte from the given register\
+            '''
+            try:
+                return self.bus.read_byte_data(self.address,
+                                               register)
+            except IOError:
+                raise IOError('Error reading from register {} on '
+                              'device {}'.format(hex(self.address),
+                                                 hex(register)))
+
+        def readList(self, register, length):
+            '''\
+            Read a sequential list of bytes, number of bytes determined by
+            length, starting register defined by given register.\
+            '''
+            try:
+                return self.bus.read_i2c_block_data(self.address,
+                                                    register,
+                                                    length)
+            except IOError:
+                addr = self.address
+                raise IOError('Error reading {} bytes from device {} '
+                              'starting at register {}'.format(length,
+                                                               hex(addr),
+                                                               hex(register)))
+
+        def write8(self, register, byte):
+            '''\
+            Write the given byte to the given register\
+            '''
+            try:
+                return self.bus.write_byte_data(self.address,
+                                                register,
+                                                byte)
+            except IOError:
+                raise IOError('Error writing {} to register {} on '
+                              'device {}'.format(bin(byte)[2:].zfill(8),
+                                                 hex(register),
+                                                 hex(self.address)))
