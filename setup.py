@@ -31,8 +31,8 @@ setup(
     author='Ruairi Fahy',
     url='https://github.com/ruairif/ahrs',
     packages=[
-        'ahrs_sensors.py',
-        'sensors.py'
+        'ahrs_sensors',
+        'sensor'
     ],
     include_package_data=True,
     install_requires=reqs,
@@ -47,3 +47,4 @@ setup(
         'Programming Language :: Python :: 2.7',
     ]
 )
+
