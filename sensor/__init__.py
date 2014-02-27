@@ -18,6 +18,7 @@ class Sensor(object):
     raw_data = [0, 0, 0, 0, 0, 0]
     low_high = True
 
+    # Adjust Sensors for initialisation offsets
     offset = {'x': 0, 'y': 0, 'z': 0, 'T': 0}
 
     def __init__(self, bus=None, **kwargs):

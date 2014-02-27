@@ -8,6 +8,7 @@ sensors. These sensors include
     • Honeywell HMC5883L low-field magnetic sensing
     • Analog Devices ADXL345 accelerometer
     • InvenSense ITG-3200A 3-axis MEMS gyroscope
+    • XBox Nav440 attitude sensor
 '''
 
 
