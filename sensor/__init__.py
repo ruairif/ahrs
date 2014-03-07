@@ -82,8 +82,8 @@ class Sensor(object):
         self.raw_data = self.sensor.readList(start, num_bytes)
         direction_vector = []
         for d, i in zip(register_names, range(0, num_bytes, 2)):
-            fixed_point = self.convert_raw_data(i) + self.offset[d]
-            direction_vector.append((d, fixed_point)
+            fixed_point = self.convert_raw_data(i) - self.offset[d]
+            direction_vector.append((d, fixed_point))
 
         return dict(direction_vector)
 

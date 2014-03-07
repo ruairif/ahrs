@@ -8,7 +8,7 @@ sensors. These sensors include
     • Honeywell HMC5883L low-field magnetic sensing
     • Analog Devices ADXL345 accelerometer
     • InvenSense ITG-3200A 3-axis MEMS gyroscope
-    • XBox Nav440 attitude sensor
+    • XBow Nav440 attitude sensor
 '''
 
 
@@ -86,17 +86,18 @@ class ADXL345(Sensor):
         sleep(0.05)
 
         base_data = self.read()
-        self.offset['x'] = -base_data['x']
-        self.offset['y'] = -base_data['y']
+        self.offset['x'] = base_data['x']
+        self.offset['y'] = base_data['y']
         z = base_data['z']
-        self.offset['z'] = -(z/abs(z))*(251-abs(z))
+        self.offset['z'] = (z/abs(z))*(251-abs(z))
 
     def read(self):
         return self.read_s16(0x32)
 
     def poll(self):
         direction_vector = self.read()
-        return dict([(d, (direction_vector[d] * self.scale)) for d in 'xyz'])
+        _ =  dict([(d, (direction_vector[d] * self.scale)) for d in 'xyz'])
+        return _
 
     def calibrate(self):
         pass
@@ -110,17 +111,22 @@ class ITG3200(Sensor):
     _address = 0x68
     data_vector = ('T', 'x', 'y', 'z')
     low_high = False
-    scale = 0.06957  # rads per lsb
+    scale = 14.375 # degrees per lsb
+    deg_to_rad = 0.0174532925
 
     previous = {'x': 0, 'y': 0, 'z': 0, 'T': 0}
 
     def _init_sensor(self, **kwargs):
         # Set sampling rate 1kHz/(byte + 1)
-        self.sensor.write8(0x15, 0x07)
+        self.sensor.write8(0x15, 0x09)
+        sleep(0.06)
+
+        # Set power mode and clock
+        self.sensor.write8(0x3E, 0x07 & 0x01)
         sleep(0.06)
 
         # Set Range and Internal Sampling Rate
-        self.sensor.write8(0x16, (0x03 << 3) | 0x01)
+        self.sensor.write8(0x16, 0x03 << 3 | 0x06)
         sleep(0.06)
 
         # Enable interrupt pin for monitoring when new data is avaialable
@@ -130,6 +136,11 @@ class ITG3200(Sensor):
         self.previous = self.read_s16(0x1B, 8)
         sleep(0.06)
 
+        base_data = self.read()
+        self.offset['x'] = base_data['x']
+        self.offset['y'] = base_data['y']
+        self.offset['z'] = base_data['z']
+
     def read(self):
         data_ready = self.sensor.readU8(0x1A) & 0x01
         if not data_ready:
@@ -138,12 +149,14 @@ class ITG3200(Sensor):
         return self.read_s16(0x1B, 8)
 
     def poll(self):
-        direction_vector = self.read()
+        direction_vector = self.read().copy()
         temperature = direction_vector['T']
         direction_vector['T'] = round(35 + ((temperature + 13200) / 280.0), 2)
-        for dir in 'xyz':
-            direction_vector[dir] = direction_vector[dir] * self.scale
-        return direction_vector
+        scaled = {}
+        for direction in 'xyz':
+            _ = direction_vector[direction] / self.scale
+            scaled[direction] = _ * self.deg_to_rad
+        return scaled
 
     def calibrate(self):
         pass
@@ -216,10 +229,10 @@ class Nav440(Sensor):
             packet_data =  self.parse_packet(self.sensor.read(37))
         except IOError as err:
             print(err)
-            return None
 
         finally:
             self.sensor.close()
+        return packet_data
 
     def poll(self):
         return self.read()
