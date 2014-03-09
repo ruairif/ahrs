@@ -47,6 +47,12 @@ class Sensor(object):
         '''
         return self.read()
 
+    def clean_up(self, **kwargs):
+        '''\
+        Allow for clean up logic to be implemented if needed\
+        '''
+        pass
+
     def calibrate(self, **kwargs):
         '''\
         Provide a setup that can allow for accurate calibration of the
