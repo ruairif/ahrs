@@ -8,6 +8,7 @@ sensors. These sensors include
     • Honeywell HMC5883L low-field magnetic sensing
     • Analog Devices ADXL345 accelerometer
     • InvenSense ITG-3200A 3-axis MEMS gyroscope
+    • ST Microelectronics L3G4200D MEMS gyroscope
     • XBow Nav440 attitude sensor
 '''
 
@@ -147,6 +148,60 @@ class ITG3200(Sensor):
             return self.previous
 
         return self.read_s16(0x1B, 8)
+
+    def poll(self):
+        direction_vector = self.read().copy()
+        temperature = direction_vector['T']
+        direction_vector['T'] = round(35 + ((temperature + 13200) / 280.0), 2)
+        scaled = {}
+        for direction in 'xyz':
+            _ = direction_vector[direction] / self.scale
+            scaled[direction] = _ * self.deg_to_rad
+        return scaled
+
+    def calibrate(self):
+        pass
+
+class L3G4200D(Sensor):
+    '''\
+    ST Microelectronics L3G4200D 3-axis MEMS motion system\
+    '''
+    _address = 0x69
+    data_vector = ('x', 'y', 'z')
+    temperature = 0
+    deg_to_rad = 0.0174532925
+    scale = 70e-3 # degrees per lsb
+
+    def _init_sensor(self, **kwargs):
+        # Set output rate, bandwidth and power mode
+        self.sensor.write8(0x20, 0x1F)
+        sleep(0.05)
+        # Set Range and Internal Sampling Rate
+        self.sensor.write8(0x21, 0x20)
+        sleep(0.05)
+        # Enable interrupt pin for monitoring when new data is avaialable
+        self.sensor.write8(0x22, 0x08)
+        sleep(0.05)
+        # Enable/disable self-test, SPI mode, big/little endian and update mode
+        self.sensor.write8(0x23, 0x30)
+        sleep(0.05)
+        # Enable low and High pass filters
+        self.sensor.write8(0x24, 0x12)
+        sleep(0.05)
+
+        base_data = self.read()
+        self.offset['x'] = base_data['x']
+        self.offset['y'] = base_data['y']
+        self.offset['z'] = base_data['z']
+
+    def read(self):
+        data_ready = self.sensor.readU8(0x27) & 0x08
+        if data_ready is 8:
+            return None
+
+        _ = self.read_s16(0x28, 6)
+        self.temperature = _['T']
+        return _
 
     def poll(self):
         direction_vector = self.read().copy()
