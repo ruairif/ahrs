@@ -1,1 +1,2 @@
 virtualenv==1.11
+pyserial==2.7
