@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
+from .sensor_types import SensorTypes
 from ctypes import c_int16
 import smbus
 
@@ -12,6 +14,8 @@ class Sensor(object):
     '''
     # Address of sensor over I2C interface
     _address = 0x00
+    # Type of sensor being read. Types of sensors found in SensorType class
+    _type = SensorTypes.NONE
     # The order which the data_vector should be read from the device
     data_vector = ('x', 'y', 'z')
     # Basic initialised 6byte buffer for reading from sensors
@@ -52,6 +56,19 @@ class Sensor(object):
         Allow for clean up logic to be implemented if needed\
         '''
         pass
+
+
+    @property
+    def type(self):
+        '''\
+        Enumerated type of sensor. The name of the sensor type can be
+        received from the SensorTypes class\
+        '''
+        return self._type
+
+    @property
+    def type_name(self):
+        return SensorTypes.name(self.type)
 
     def calibrate(self, **kwargs):
         '''\
