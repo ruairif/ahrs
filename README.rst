@@ -15,6 +15,11 @@ to measure angular rotation rate.
 
 The XBow Nav440 AHRS system for measuring yaw, pitch, roll, acceleration,
 heading and angular rate
+
+The Sony PlayStation Move controller. This games controller comes equipped with
+a Kionix KXSC4 accelerometer, an STMicroelectronics LY5250ALH gyroscope for yaw
+measurements and an STMicroelectronics LPR425AL gyroscope for roll and pitch
+measurements as well as an AKM Semiconductor AK8974 magnetometer.
 Installing
 ----------
 To use this library the host computer needs to have support for communicating
@@ -28,3 +33,9 @@ On Ubuntu/Debian::
 On Arch::
 
     pacman -S i2c-tools
+
+To use the PS Move as a sensor the psmoveapi_ library need to be installed on
+your system and the python bindings must be in your python path. If these conditions are satisfied then it should be possible to use the PS Move as an AHRS
+sensor.
+
+.. _psmoveapi: https://github.com/thp/psmoveapi
