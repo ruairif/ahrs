@@ -166,6 +166,7 @@ class ITG3200(Sensor):
     def calibrate(self):
         pass
 
+
 class L3G4200D(Sensor):
     '''\
     ST Microelectronics L3G4200D 3-axis MEMS motion system\
@@ -231,40 +232,33 @@ class Nav440(Sensor):
     _type = ST.ALL
     DataStr = namedtuple('DataStr', 'type num data crc stripped')
     Reading = namedtuple('Reading', 'sensor direction')
-    S0 = [Reading(sensor='accel', direction='x'),
-          Reading(sensor='accel', direction='y'),
-          Reading(sensor='accel', direction='z'),
-          Reading(sensor='gyro', direction='x'),
-          Reading(sensor='gyro', direction='y'),
-          Reading(sensor='gyro', direction='z'),
-          Reading(sensor='mag', direction='x'),
-          Reading(sensor='mag', direction='y'),
-          Reading(sensor='mag', direction='z'),
-          Reading(sensor='temp', direction='x'),
-          Reading(sensor='temp', direction='y'),
-          Reading(sensor='temp', direction='z'),
-          Reading(sensor='temp', direction='cpu')]
+    S0 = [Reading(sensor=ST.name(ST.ACCELEROMETER), direction='x'),
+          Reading(sensor=ST.name(ST.ACCELEROMETER), direction='y'),
+          Reading(sensor=ST.name(ST.ACCELEROMETER), direction='z'),
+          Reading(sensor=ST.name(ST.GYROSCOPE), direction='x'),
+          Reading(sensor=ST.name(ST.GYROSCOPE), direction='y'),
+          Reading(sensor=ST.name(ST.GYROSCOPE), direction='z'),
+          Reading(sensor=ST.name(ST.MAGNETOMETER), direction='x'),
+          Reading(sensor=ST.name(ST.MAGNETOMETER), direction='y'),
+          Reading(sensor=ST.name(ST.MAGNETOMETER), direction='z'),
+          Reading(sensor=ST.name(ST.TEMPERATURE), direction='x'),
+          Reading(sensor=ST.name(ST.TEMPERATURE), direction='y'),
+          Reading(sensor=ST.name(ST.TEMPERATURE), direction='z'),
+          Reading(sensor=ST.name(ST.TEMPERATURE), direction='cpu')]
 
-    A0 = [Reading(sensor='attit', direction='r'),
-          Reading(sensor='attit', direction='p'),
-          Reading(sensor='attit', direction='y'),
-          Reading(sensor='gyro', direction='x'),
-          Reading(sensor='gyro', direction='y'),
-          Reading(sensor='gyro', direction='z'),
-          Reading(sensor='accel', direction='x'),
-          Reading(sensor='accel', direction='y'),
-          Reading(sensor='accel', direction='z'),
-          Reading(sensor='mag', direction='x'),
-          Reading(sensor='mag', direction='y'),
-          Reading(sensor='mag', direction='z'),
-          Reading(sensor='temp', direction='x')]
-
-
-    scales = {ST.name(ST.ACCELEROMETER): 20.0 / 2 ** 16,
-              ST.name(ST.GYROSCOPE): 7*pi / 2 ** 16,
-              ST.name(ST.MAGNETOMETER): 2.0 / 2 ** 16,
-              ST.name(ST.ATTITUDE): 2*pi / 2 ** 16,
-              ST.name(ST.TEMPERATURE): 200.0 / 2 ** 16}
+    A0 = [Reading(sensor=ST.name(ST.ATTITUDE), direction='r'),
+          Reading(sensor=ST.name(ST.ATTITUDE), direction='p'),
+          Reading(sensor=ST.name(ST.ATTITUDE), direction='y'),
+          Reading(sensor=ST.name(ST.GYROSCOPE), direction='x'),
+          Reading(sensor=ST.name(ST.GYROSCOPE), direction='y'),
+          Reading(sensor=ST.name(ST.GYROSCOPE), direction='z'),
+          Reading(sensor=ST.name(ST.ACCELEROMETER), direction='x'),
+          Reading(sensor=ST.name(ST.ACCELEROMETER), direction='y'),
+          Reading(sensor=ST.name(ST.ACCELEROMETER), direction='z'),
+          Reading(sensor=ST.name(ST.MAGNETOMETER), direction='x'),
+          Reading(sensor=ST.name(ST.MAGNETOMETER), direction='y'),
+          Reading(sensor=ST.name(ST.MAGNETOMETER), direction='z'),
+          Reading(sensor=ST.name(ST.TEMPERATURE), direction='x')]
 
     packet_types = {'S0': S0, 'A0': A0, 'A1': A0}
 
@@ -275,6 +269,13 @@ class Nav440(Sensor):
                                     baudrate=baudrate,
                                     timeout=None)
         self.sensor.close()
+
+        _ = ST.name
+        self.scales = {_(ST.ACCELEROMETER): 20.0 / 2 ** 16,
+                      _(ST.GYROSCOPE): 7*pi / 2 ** 16,
+                      _(ST.MAGNETOMETER): 2.0 / 2 ** 16,
+                      _(ST.ATTITUDE): 2*pi / 2 ** 16,
+                      _(ST.TEMPERATURE): 200.0 / 2 ** 16}
         self._init_sensor(**kwargs)
 
     def _init_sensor(self, **kwargs):
