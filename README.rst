@@ -20,6 +20,7 @@ The Sony PlayStation Move controller. This games controller comes equipped with
 a Kionix KXSC4 accelerometer, an STMicroelectronics LY5250ALH gyroscope for yaw
 measurements and an STMicroelectronics LPR425AL gyroscope for roll and pitch
 measurements as well as an AKM Semiconductor AK8974 magnetometer.
+
 Installing
 ----------
 To use this library the host computer needs to have support for communicating
