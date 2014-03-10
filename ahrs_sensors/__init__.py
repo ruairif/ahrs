@@ -229,7 +229,7 @@ class Nav440(Sensor):
     Interface with the XBow Nav440\
     '''
 
-    _type = ST.ALL
+    _type = ST.AHRS
     DataStr = namedtuple('DataStr', 'type num data crc stripped')
     Reading = namedtuple('Reading', 'sensor direction')
     S0 = [Reading(sensor=ST.name(ST.ACCELEROMETER), direction='x'),

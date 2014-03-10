@@ -10,7 +10,10 @@ class SensorTypes(object):
     GYROSCOPE = 3
     MAGNETOMETER = 4
     ATTITUDE = 5
-    TEMPERATURE = 6
+    ORIENTATION = 6
+    TEMPERATURE = 7
+    IMU = 8
+    AHRS = 9
 
     SENSOR_NAMES = {0: None,
                     1: 'all',
@@ -18,7 +21,10 @@ class SensorTypes(object):
                     3: 'gyroscope',
                     4: 'magnetometer',
                     5: 'attitude',
-                    6: 'temperature'}
+                    6: 'orientation',
+                    7: 'temperature',
+                    8: 'imu',
+                    9: 'ahrs'}
 
     @classmethod
     def name(self, value=0):
