@@ -15,6 +15,7 @@ sensors. These sensors include
 
 from time import sleep
 from sensor import Sensor
+from sensor import SensorTypes as ST
 from collections import namedtuple
 from math import pi
 from ctypes import c_uint16 as uint16
@@ -28,6 +29,7 @@ class HMC5883L(Sensor):
     Honeywell HMC5883L low-field magnetic sensing\
     '''
     _address = 0x1e
+    _type = ST.MAGNETOMETER
     data_vector = ('x', 'z', 'y')
     low_high = False
 
@@ -68,6 +70,7 @@ class ADXL345(Sensor):
     Analog Devices ADXL345 accelerometer\
     '''
     _address = 0x53
+    _type = ST.ACCELEROMETER
     data_vector = ('x', 'y', 'z')
     low_high = True
 
@@ -110,6 +113,7 @@ class ITG3200(Sensor):
     InvenSense ITG-3200A 3-axis MEMS gyroscope\
     '''
     _address = 0x68
+    _type = ST.GYROSCOPE
     data_vector = ('T', 'x', 'y', 'z')
     low_high = False
     scale = 14.375 # degrees per lsb
@@ -167,6 +171,7 @@ class L3G4200D(Sensor):
     ST Microelectronics L3G4200D 3-axis MEMS motion system\
     '''
     _address = 0x69
+    _type = ST.GYROSCOPE
     data_vector = ('x', 'y', 'z')
     temperature = 0
     deg_to_rad = 0.0174532925
@@ -223,6 +228,7 @@ class Nav440(Sensor):
     Interface with the XBow Nav440\
     '''
 
+    _type = ST.ALL
     DataStr = namedtuple('DataStr', 'type num data crc stripped')
     Reading = namedtuple('Reading', 'sensor direction')
     S0 = [Reading(sensor='accel', direction='x'),
@@ -253,11 +259,12 @@ class Nav440(Sensor):
           Reading(sensor='mag', direction='z'),
           Reading(sensor='temp', direction='x')]
 
-    scales = {'accel': 20.0 / 2 ** 16,
-              'gyro': 7*pi / 2 ** 16,
-              'mag': 2.0 / 2 ** 16,
-              'attit': 2*pi / 2 ** 16,
-              'temp': 200.0 / 2 ** 16}
+
+    scales = {ST.name(ST.ACCELEROMETER): 20.0 / 2 ** 16,
+              ST.name(ST.GYROSCOPE): 7*pi / 2 ** 16,
+              ST.name(ST.MAGNETOMETER): 2.0 / 2 ** 16,
+              ST.name(ST.ATTITUDE): 2*pi / 2 ** 16,
+              ST.name(ST.TEMPERATURE): 200.0 / 2 ** 16}
 
     packet_types = {'S0': S0, 'A0': A0, 'A1': A0}
 
