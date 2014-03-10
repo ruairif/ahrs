@@ -57,7 +57,6 @@ class Sensor(object):
         '''
         pass
 
-
     @property
     def type(self):
         '''\
@@ -68,6 +67,9 @@ class Sensor(object):
 
     @property
     def type_name(self):
+        '''\
+        Return a string name for the sensor type\
+        '''
         return SensorTypes.name(self.type)
 
     def calibrate(self, **kwargs):

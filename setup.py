@@ -25,7 +25,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='ahrs_sensors',
-    version='0.0.5',
+    version='0.0.6',
     description='Read data from the sparkfun SEN-10724 sensor stick',
     long_description=readme,
     author='Ruairi Fahy',

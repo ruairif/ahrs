@@ -93,14 +93,14 @@ class ADXL345(Sensor):
         self.offset['x'] = base_data['x']
         self.offset['y'] = base_data['y']
         z = base_data['z']
-        self.offset['z'] = (z/abs(z))*(251-abs(z))
+        self.offset['z'] = (z / abs(z)) * (251 - abs(z))
 
     def read(self):
         return self.read_s16(0x32)
 
     def poll(self):
         direction_vector = self.read()
-        _ =  dict([(d, (direction_vector[d] * self.scale)) for d in 'xyz'])
+        _ = dict([(d, (direction_vector[d] * self.scale)) for d in 'xyz'])
         return _
 
     def calibrate(self):
@@ -116,7 +116,7 @@ class ITG3200(Sensor):
     _type = ST.GYROSCOPE
     data_vector = ('T', 'x', 'y', 'z')
     low_high = False
-    scale = 14.375 # degrees per lsb
+    scale = 14.375  # degrees per lsb
     deg_to_rad = 0.0174532925
 
     previous = {'x': 0, 'y': 0, 'z': 0, 'T': 0}
@@ -176,7 +176,7 @@ class L3G4200D(Sensor):
     data_vector = ('x', 'y', 'z')
     temperature = 0
     deg_to_rad = 0.0174532925
-    scale = 70e-3 # degrees per lsb
+    scale = 70e-3  # degrees per lsb
 
     def _init_sensor(self, **kwargs):
         # Set output rate, bandwidth and power mode
@@ -272,10 +272,10 @@ class Nav440(Sensor):
 
         _ = ST.name
         self.scales = {_(ST.ACCELEROMETER): 20.0 / 2 ** 16,
-                      _(ST.GYROSCOPE): 7*pi / 2 ** 16,
-                      _(ST.MAGNETOMETER): 2.0 / 2 ** 16,
-                      _(ST.ATTITUDE): 2*pi / 2 ** 16,
-                      _(ST.TEMPERATURE): 200.0 / 2 ** 16}
+                       _(ST.GYROSCOPE): 7 * pi / 2 ** 16,
+                       _(ST.MAGNETOMETER): 2.0 / 2 ** 16,
+                       _(ST.ATTITUDE): 2 * pi / 2 ** 16,
+                       _(ST.TEMPERATURE): 200.0 / 2 ** 16}
         self._init_sensor(**kwargs)
 
     def _init_sensor(self, **kwargs):
@@ -289,7 +289,7 @@ class Nav440(Sensor):
                 self.sensor.flushInput()
             self.sensor.read(32)
         try:
-            packet_data =  self.parse_packet(self.sensor.read(37))
+            packet_data = self.parse_packet(self.sensor.read(37))
         except IOError as err:
             print(err)
 

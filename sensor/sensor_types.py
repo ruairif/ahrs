@@ -1,5 +1,9 @@
 class SensorTypes(object):
 
+    '''\
+    Class to keep a consistent naming scheme for sensor names.
+    '''
+
     NONE = 0
     ALL = 1
     ACCELEROMETER = 2
@@ -18,4 +22,7 @@ class SensorTypes(object):
 
     @classmethod
     def name(self, value=0):
+        '''\
+        Return a string name for a sensor enum value\
+        '''
         return self.SENSOR_NAMES.get(value)
