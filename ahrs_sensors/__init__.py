@@ -261,7 +261,7 @@ class Nav440(Sensor):
           Reading(sensor=ST.name(ST.TEMPERATURE), direction='x')]
 
     packet_types = {'S0': S0, 'A0': A0, 'A1': A0}
-
+    previous_packet = {}
     low_high = False
 
     def __init__(self, bus='/dev/USB0', baudrate=9600, timeout=None, **kwargs):
@@ -284,14 +284,21 @@ class Nav440(Sensor):
     def read(self):
         if not self.sensor.isOpen():
             self.sensor.open()
-            while self.sensor.read(5) != 'UUS0\x1e':
-                self.sensor.flushOutput()
-                self.sensor.flushInput()
+            self.sensor.flushOutput()
+            self.sensor.flushInput()
+            while True:  # self.sensor.read(5) != 'UUS0\x1e':
+                char = self.sensor.read(1)
+                if char == 'U':
+                    header = self.sensor.read(4)
+                    if header == 'US0\x1e':
+                        break
             self.sensor.read(32)
         try:
             packet_data = self.parse_packet(self.sensor.read(37))
+            self.previous_packet = packet_data
         except IOError as err:
-            print(err)
+            print('CRC value not correct. Data not transmitted correctly')
+            packet_data = self.previous_packet
 
         finally:
             self.sensor.close()
